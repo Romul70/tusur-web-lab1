@@ -1,0 +1,22 @@
+<!doctype html>
+<html lang="ru"><head><meta charset="utf-8"><meta name="viewport" content="width=device-width,initial-scale=1">
+<title>ЛР1 — Перестановка каналов RGB</title><link rel="stylesheet" href="{{ url_for('static',filename='style.css') }}"></head>
+<body><main><header><p class="eyebrow">Лабораторная работа №1 · Вариант 7</p><h1>Перестановка каналов RGB</h1><p>Загрузите изображение, выберите порядок каналов и сравните цветовые характеристики.</p></header>
+{% if error %}<p class="error" role="alert">{{ error }}</p>{% endif %}
+<section class="panel"><form method="post" action="/process" enctype="multipart/form-data">
+<input type="hidden" name="csrf" value="{{ csrf }}"><input type="hidden" name="captcha_token" value="{{ token }}">
+<label>Изображение <input type="file" name="image" accept="image/png,image/jpeg,image/webp" required></label>
+<label>Новый порядок каналов <select name="order">{% for order in orders %}<option value="{{ order }}" {% if order=='BGR' %}selected{% endif %}>{{ order }}</option>{% endfor %}</select></label>
+<p class="hint">BGR означает: новый красный = исходный синий, новый зелёный = исходный зелёный, новый синий = исходный красный.</p>
+<label>Формат результата <select name="output_format"><option value="PNG">PNG</option><option value="JPEG">JPEG</option><option value="WEBP">WebP</option></select></label>
+<p class="hint">Для конвертации без перестановки каналов выберите RGB. JPEG сохраняется с потерями; PNG и WebP — без потерь после преобразования в RGB.</p>
+<div class="captcha"><img src="/captcha/{{ token }}.png" alt="Арифметическое задание проверки на робота"><label>Ответ на CAPTCHA <input name="captcha_answer" inputmode="numeric" autocomplete="off" required></label></div>
+<button type="submit">Обработать изображение</button><p class="hint">PNG, JPEG, WebP · до 8 МиБ и 4 миллионов пикселей. Прозрачность преобразуется в RGB.</p></form></section>
+{% if result %}<section id="result"><h2>Результат {{ result.order }}</h2>
+<p>{{ result.before.width }} × {{ result.before.height }} пикселей. Размер сохранён.</p>
+<div class="grid"><article class="panel"><h3>Исходное изображение</h3><img class="preview" src="{{ result.original }}" alt="Исходное изображение"><p>Средний RGB: {{ result.before.mean_rgb|map('round',2)|join(', ') }}</p></article>
+<article class="panel"><h3>После перестановки</h3><img class="preview" src="{{ result.image }}" alt="Результат перестановки"><p>Средний RGB: {{ result.after.mean_rgb|map('round',2)|join(', ') }}</p><a class="button" href="{{ result.download }}" download="result_{{ result.order }}.{{ result.extension }}">Скачать {{ result.output_format }}</a></article></div>
+<h2>Распределение цветов</h2><div class="grid"><img src="{{ result.before_charts.histogram }}" alt="Гистограмма исходного изображения"><img src="{{ result.after_charts.histogram }}" alt="Гистограмма результата"></div>
+<h2>Среднее значение по координате X</h2><p>Для каждого столбца усредняются все строки.</p><div class="grid"><img src="{{ result.before_charts.mean_by_x }}" alt="Профиль X исходного изображения"><img src="{{ result.after_charts.mean_by_x }}" alt="Профиль X результата"></div>
+<h2>Среднее значение по координате Y</h2><p>Для каждой строки усредняются все столбцы.</p><div class="grid"><img src="{{ result.before_charts.mean_by_y }}" alt="Профиль Y исходного изображения"><img src="{{ result.after_charts.mean_by_y }}" alt="Профиль Y результата"></div>
+</section>{% endif %}<footer>Учебный проект · Flask, Pillow, NumPy и Matplotlib</footer></main></body></html>

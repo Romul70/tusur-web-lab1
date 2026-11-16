@@ -1,0 +1,14 @@
+services:
+  - type: web
+    name: tusur-web-lab1
+    runtime: python
+    buildCommand: pip install -r requirements.txt
+    startCommand: gunicorn --workers 1 --threads 1 --timeout 120 --bind 0.0.0.0:$PORT app:app
+    healthCheckPath: /health
+    envVars:
+      - key: PYTHON_VERSION
+        value: 3.12.10
+      - key: SECRET_KEY
+        generateValue: true
+      - key: MPLCONFIGDIR
+        value: /tmp/matplotlib
